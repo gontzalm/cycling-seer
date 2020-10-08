@@ -24,12 +24,12 @@ def fetch_riders():
     return list(cur)
 
 
-def insert_race(race):
-    """Insert race in database."""
+def insert_stage(stage):
+    """Insert stage in database."""
     query = {}
     pass
 
 
-def fetch_races():
-    """Fetch all races from database."""
+def fetch_stages():
+    """Fetch all stages   from database."""
     pass

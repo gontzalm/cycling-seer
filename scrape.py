@@ -5,22 +5,23 @@ from src import dbops, procyclingstats
 
 
 @click.command()
-@click.argument("item")
+@click.argument("items")
 @click.option("-v", "--verbose", is_flag=True)
-def scrape(item, verbose):
-    """Scrape ITEMs from procyclingstats.com.""" 
-    item = item.lower()
-    if item not in ["rider", "race"]:
-        raise click.UsageError("ITEM must be RIDER or RACE")
+def scrape(items, verbose):
+    """Scrape ITEMS from procyclingstats.com.""" 
+    items = items.lower()
+    if items not in ["riders", "stages"]:
+        raise click.UsageError("ITEMS must be RIDERS or STAGES")
 
-    if item == "rider":
+    if items == "riders":
+        # TODO Rider names
         for rider in ["alberto-contador", "tadej-pogacar"]:
             rider_data = procyclingstats.get_rider(rider)
             
             # HTTP error
-            if not rider_data:
+            if isinstance(rider_data, int):
                 if verbose:
-                    print(f"Something went wrong when getting {rider}")
+                    click.echo(f"Cannot get {rider}. Status code: {rider_data}")
                 continue
             
             inserted_id = dbops.insert_rider(rider_data)
