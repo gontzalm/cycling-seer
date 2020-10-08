@@ -66,9 +66,13 @@ def is_itt(soup):
 
 
 def parse_result(res):
-    """Parse stage reesult from procyclingstats.com response."""
+    """Parse stage result from procyclingstats.com response."""
     soup = BeautifulSoup(res.text, "html.parser")
     
+    # Check if stage exists
+    if not soup.select("h2 span.red"):
+        return 404
+
     # Check if team time trial
     if is_ttt(soup):
         return None
@@ -101,27 +105,31 @@ def parse_profile(res):
 
 def get_stage(race, year, number):
     """Get stage from procyclingstats.com."""
-    # Get stage results
+    # Get stage result
     url = f"{BASE_URL}/race/{race}/{year}/stage-{number}/result"
     res = requests.get(url)
 
     if res.status_code != 200:
         return res.status_code
     
-    stage_data = {
-        "race": race,
-        "year": year,
-        "number": number
-    }
-    stage_data.update(parse_result(res))
-    
+    result = parse_result(res)
+    if result and not isinstance(result, int):
+        stage_data = {
+            "race": race,
+            "year": year,
+            "number": number
+        }
+        stage_data.update(result)
+    else:
+        return result
+
     # Get stage profile
     url = f"{BASE_URL}/race/{race}/{year}/stage-{number}/today/profiles"
     res = requests.get(url)
 
     if res.status_code != 200:
         return res.status_code
-
+    
     stage_data.update(parse_profile(res))
 
     return stage_data
