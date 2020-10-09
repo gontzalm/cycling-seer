@@ -68,9 +68,11 @@ def is_itt(soup):
 def parse_result(res):
     """Parse stage result from procyclingstats.com response."""
     soup = BeautifulSoup(res.text, "html.parser")
+    tags = soup.select("h2 span.red")
+    winner_tag = soup.select("td > a[href]")
     
     # Check if stage exists
-    if not soup.select("h2 span.red"):
+    if not tags or not winner_tag:
         return 404
 
     # Check if team time trial
@@ -78,13 +80,12 @@ def parse_result(res):
         return None
 
     # Start-finish & distance
-    tags = soup.select("h2 span.red")
     start_finish = tags[0].text.split("\xa0")
     start_finish = " ".join([x.strip() for x in start_finish if x])
     distance = tags[1].text.strip("()k")
 
     # Winner
-    winner = soup.select("td > a[href]")[0]["href"].split("/")[-1]
+    winner = winner_tag[0]["href"].split("/")[-1]
 
     return {
         "start/finish": start_finish,
@@ -97,7 +98,13 @@ def parse_result(res):
 def parse_profile(res):
     """Parse profile from procyclingstats.com response."""
     soup = BeautifulSoup(res.text, "html.parser")
-    profile = soup.select("div.statDivLeft img:first-of-type")[0]["src"]
+    profile_tag = soup.select("div.statDivLeft img:first-of-type")
+
+    # Check if profile exists
+    if not profile_tag:
+        return 404
+
+    profile = profile_tag[0]["src"]
     return {
         "profile": profile
     }
@@ -113,15 +120,15 @@ def get_stage(race, year, number):
         return res.status_code
     
     result = parse_result(res)
-    if result and not isinstance(result, int):
-        stage_data = {
-            "race": race,
-            "year": year,
-            "number": number
-        }
-        stage_data.update(result)
-    else:
+    if not result or isinstance(result, int):
         return result
+        
+    stage_data = {
+        "race": race,
+        "year": year,
+        "number": number
+    }
+    stage_data.update(result)
 
     # Get stage profile
     url = f"{BASE_URL}/race/{race}/{year}/stage-{number}/today/profiles"
@@ -130,6 +137,10 @@ def get_stage(race, year, number):
     if res.status_code != 200:
         return res.status_code
     
-    stage_data.update(parse_profile(res))
+    profile = parse_profile(res)
+    if isinstance(profile, int):
+        return profile
+    
+    stage_data.update(profile)
 
     return stage_data

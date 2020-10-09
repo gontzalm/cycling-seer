@@ -1,12 +1,25 @@
 from src.dbconection import db
 
 
+def check_exists(elem):
+    """Check if element already in database."""
+    # Element is rider
+    if isinstance(elem, str):
+        if db.riders.find_one({"name": elem}):
+            return True
+        else:
+            return False
+
+    # Elemet is stage
+    query = {k: v for k, v in zip(("race", "year", "number"), elem)}
+    if db.stages.find_one(query):
+        return True
+    else:
+        return False
+
+
 def insert_rider(rider):
     """Insert rider in database."""
-    # Check if rider in db
-    if db.riders.find_one({"name": rider["name"]}):
-        return None
-
     oid = db.riders.insert_one(rider).inserted_id
     return str(oid)
 
@@ -24,11 +37,6 @@ def fetch_riders():
 
 def insert_stage(stage):
     """Insert stage in database."""
-    # Check if stage in db
-    query = {k: stage[k] for k in ["race", "year", "number"]}
-    if db.stages.find_one(query):
-        return None
-
     oid = db.stages.insert_one(stage).inserted_id
     return str(oid)    
 
