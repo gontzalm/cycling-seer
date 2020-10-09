@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
-from conf import BASE_URL
 import requests
+from conf import BASE_URL
 
 
 def is_active(soup):
@@ -83,11 +83,11 @@ def is_itt(soup):
 def parse_result(res):
     """Parse stage result from procyclingstats.com response."""
     soup = BeautifulSoup(res.text, "html.parser")
-    tags = soup.select("h2 span.red")
-    winner_tag = soup.select("td > a[href]")
+    info_tags = soup.select("h2 span.red")
+    rider_tags = soup.select("td > a[href*=rider]")
     
     # Check if stage exists
-    if not tags or not winner_tag:
+    if not info_tags or not rider_tags:
         return 404
 
     # Check if team time trial
@@ -95,18 +95,18 @@ def parse_result(res):
         return None
 
     # Start-finish & distance
-    start_finish = tags[0].text.split("\xa0")
+    start_finish = info_tags[0].text.split("\xa0")
     start_finish = " ".join([x.strip() for x in start_finish if x])
-    distance = tags[1].text.strip("()k")
+    distance = float(info_tags[1].text.strip("()k"))
 
-    # Winner
-    winner = winner_tag[0]["href"].split("/")[-1]
+    # Rider positions
+    result = [tag["href"].split("/")[-1] for tag in rider_tags[:10]]
 
     return {
-        "start/finish": start_finish,
-        "distance": float(distance),
-        "time trial": is_itt(soup),
-        "winner": winner
+        "start_finish": start_finish,
+        "distance": distance,
+        "time_trial": is_itt(soup),
+        "result": result
     }
 
 

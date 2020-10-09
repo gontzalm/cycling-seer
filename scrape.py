@@ -15,33 +15,10 @@ def scrape(items, verbose):
 
     # Invalid argument
     if items not in ["riders", "stages"]:
-        raise click.UsageError("ITEMS must be RIDERS or STAGES")
+        raise click.UsageError("ITEMS must be STAGES or RIDERS")
 
-    # Scrape riders
-    if items == "riders":
-        stages = dbops.fetch_stages(project="winner")
-        winners = [stage["winner"] for stage in stages]
-
-        for rider in winners:
-            if dbops.check_exists(rider):
-                if verbose:
-                    click.echo(f"{rider} already in database.")
-                continue
-
-            rider_data = procyclingstats.get_rider(rider)
-
-            # HTTP error
-            if isinstance(rider_data, int):
-                if verbose:
-                    click.echo(f"{rider} could not be retrieved. Status code: {rider_data}")
-                continue
-
-            inserted_id = dbops.insert_rider(rider_data)
-            if verbose:
-                click.echo(f"{rider} inserted with ID: {inserted_id}")
-
-    # Srape stages
-    else:
+    # Scrape stages
+    if items == "stages":
         for race, params in RACES.items():
             (start_year, stop_year), no_races = params
             iter_years = range(start_year, stop_year)
@@ -71,6 +48,29 @@ def scrape(items, verbose):
                 inserted_id = dbops.insert_stage(stage_data)
                 if verbose:
                     click.echo(f"{stage} inserted with ID: {inserted_id}")
+
+    # Srape riders
+    else:
+        stages = dbops.fetch_stages(project="result")
+        riders = [rider for stage in stages for rider in stage["result"]]
+
+        for rider in riders:
+            if dbops.check_exists(rider):
+                if verbose:
+                    click.echo(f"{rider} already in database.")
+                continue
+
+            rider_data = procyclingstats.get_rider(rider)
+
+            # HTTP error
+            if isinstance(rider_data, int):
+                if verbose:
+                    click.echo(f"{rider} could not be retrieved. Status code: {rider_data}")
+                continue
+
+            inserted_id = dbops.insert_rider(rider_data)
+            if verbose:
+                click.echo(f"{rider} inserted with ID: {inserted_id}")
 
 
 if __name__ == "__main__":
