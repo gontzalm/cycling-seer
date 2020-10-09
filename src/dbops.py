@@ -10,7 +10,7 @@ def check_exists(elem):
         else:
             return False
 
-    # Elemet is stage
+    # Element is stage
     query = {k: v for k, v in zip(("race", "year", "number"), elem)}
     if db.stages.find_one(query):
         return True
@@ -24,9 +24,18 @@ def insert_rider(rider):
     return str(oid)
 
 
-def fetch_riders():
+def fetch_riders(project=None):
     """Fetch all riders from database."""
-    cur = db.riders.find(projection={"_id": 0})
+    # Set up projection
+    projection = {"_id": 0}
+    if project:
+        if isinstance(project, list):
+            for attr in project:
+                projection[attr] = 1
+        else:
+            projection[project] = 1
+
+    cur = db.riders.find(projection=projection)
     
     # Check if collection is empty
     if cur.count() == 0:
@@ -46,7 +55,11 @@ def fetch_stages(project=None):
     # Set up projection
     projection = {"_id": 0}
     if project:
-        projection[project] = 1
+        if isinstance(project, list):
+            for attr in project:
+                projection[attr] = 1
+        else:
+            projection[project] = 1
 
     cur = db.stages.find(projection=projection)
 
