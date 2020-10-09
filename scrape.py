@@ -1,8 +1,8 @@
 #!/home/gontz/miniconda3/envs/ih/bin/python3
 
+from itertools import product
 import click
 from conf import RACES
-from itertools import product
 from src import dbops, procyclingstats
 
 
@@ -10,31 +10,37 @@ from src import dbops, procyclingstats
 @click.argument("items")
 @click.option("-v", "--verbose", is_flag=True)
 def scrape(items, verbose):
-    """Scrape ITEMS from procyclingstats.com.""" 
+    """Scrape ITEMS from procyclingstats.com."""
     items = items.lower()
+
+    # Invalid argument
     if items not in ["riders", "stages"]:
         raise click.UsageError("ITEMS must be RIDERS or STAGES")
 
+    # Scrape riders
     if items == "riders":
-        # TODO Rider names
-        for rider in ["alberto-contador", "tadej-pogacar"]:
+        stages = dbops.fetch_stages(project="winner")
+        winners = [stage["winner"] for stage in stages]
+
+        for rider in winners:
             if dbops.check_exists(rider):
                 if verbose:
                     click.echo(f"{rider} already in database.")
                 continue
 
             rider_data = procyclingstats.get_rider(rider)
-            
+
             # HTTP error
             if isinstance(rider_data, int):
                 if verbose:
                     click.echo(f"{rider} could not be retrieved. Status code: {rider_data}")
                 continue
-            
+
             inserted_id = dbops.insert_rider(rider_data)
             if verbose:
                 click.echo(f"{rider} inserted with ID: {inserted_id}")
 
+    # Srape stages
     else:
         for race, params in RACES.items():
             (start_year, stop_year), no_races = params
@@ -49,7 +55,7 @@ def scrape(items, verbose):
                     continue
 
                 stage_data = procyclingstats.get_stage(race, year, number)
-                
+
                 # HTTP error
                 if isinstance(stage_data, int):
                     if verbose:
@@ -69,3 +75,4 @@ def scrape(items, verbose):
 
 if __name__ == "__main__":
     scrape()
+    

@@ -26,7 +26,7 @@ def insert_rider(rider):
 
 def fetch_riders():
     """Fetch all riders from database."""
-    cur = db.riders.find()
+    cur = db.riders.find(projection={"_id": 0})
     
     # Check if collection is empty
     if cur.count() == 0:
@@ -41,9 +41,14 @@ def insert_stage(stage):
     return str(oid)    
 
 
-def fetch_stages():
+def fetch_stages(project=None):
     """Fetch all stages from database."""
-    cur = db.stages.find()
+    # Set up projection
+    projection = {"_id": 0}
+    if project:
+        projection[project] = 1
+
+    cur = db.stages.find(projection=projection)
 
     # Check if collection is empty
     if cur.count() == 0:

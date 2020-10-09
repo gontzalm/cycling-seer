@@ -5,8 +5,8 @@ import requests
 
 def is_active(soup):
     """Check if rider is active or retired."""
-    first_team = soup.select("ul[class='moblist rdr-teams'] li")[0].text.strip()
-    return not ("Retired" in first_team)
+    last_season = soup.select("ul.rdrSeasonNav li:first-of-type")[0]["data-season"]
+    return int(last_season) == 2020
     
 
 def parse_rider(res):
@@ -15,11 +15,23 @@ def parse_rider(res):
     rdr_info = soup.select("div[class='rdr-info-cont']")[0]
     
     # Nationality, weight and height
-    nationality = rdr_info.find("a").text
-    weight = rdr_info.find_all("span")[1].contents[1].strip().split("  ")[0]
-    weight = weight.split(" ")[0]
-    height = rdr_info.select("span span")[0].contents[1].strip().split("  ")[0]
-    height = height.split(" ")[0]
+    try:
+        nationality = rdr_info.find("a").text
+    except IndexError:
+        nationality = None
+
+    try:
+        weight = rdr_info.find_all("span")[1].contents[1].strip().split("  ")[0]
+        weight = float(weight.split(" ")[0])
+    except IndexError:
+        weight = None
+
+    try:
+        height = rdr_info.select("span span")[0].contents[1].strip().split("  ")[0]
+        height = height.split(" ")[0]
+        height = int(float(height)*100)
+    except IndexError:
+        height = None
 
     # Specialty points
     points = {}
@@ -28,12 +40,15 @@ def parse_rider(res):
         points[sp] = int(tag.text.strip())
 
     # Image
-    img = soup.select("div[class='rdr-img-cont'] a img")[0]["src"]
+    try:
+        img = soup.select("div[class='rdr-img-cont'] a img")[0]["src"]
+    except IndexError:
+        img = None
     
     return {
         "nationality": nationality,
-        "weight": int(weight),
-        "height": int(float(height)*100),
+        "weight": weight,
+        "height": height,
         "points": points,
         "img": img, 
         "active": is_active(soup)
