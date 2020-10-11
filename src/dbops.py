@@ -44,6 +44,12 @@ def fetch_riders(project=None):
     return list(cur)
 
 
+def assign_clusters(df):
+    """Assign each rider to its cluster."""
+    for rider, cluster in zip(df["name"], df["cluster"]):
+        db.riders.update_one({"name": rider}, {"$set": {"cluster": cluster}})
+
+
 def insert_stage(stage):
     """Insert stage in database."""
     oid = db.stages.insert_one(stage).inserted_id

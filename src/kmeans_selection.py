@@ -6,7 +6,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import silhouette_score
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, OneHotEncoder
 from src.transformers import PercentageTransformer
 
 
@@ -21,12 +21,30 @@ SPECIALTIES = ["points." + sp for sp in ("classic", "gc", "tt", "sprint", "climb
 NUM_PIPE = {
     "normal": Pipeline([
         ("imputer", SimpleImputer()),
-        ("scaler", StandardScaler())
     ]),
 
     "percentage": Pipeline([
         ("transformer", PercentageTransformer()),
+    ]),
+
+    "normal_std": Pipeline([
+        ("imputer", SimpleImputer()),
         ("scaler", StandardScaler())
+    ]),
+
+    "percentage_std": Pipeline([
+        ("transformer", PercentageTransformer()),
+        ("scaler", StandardScaler())
+    ]),
+
+    "normal_minmax": Pipeline([
+        ("imputer", SimpleImputer()),
+        ("scaler", MinMaxScaler())
+    ]),
+
+    "percentage_minmax": Pipeline([
+        ("transformer", PercentageTransformer()),
+        ("scaler", MinMaxScaler())
     ]),
 }
 
@@ -42,6 +60,28 @@ PREPROCESSORS = {
         ("nationality", OneHotEncoder(), ["nationality"])
     ]),
 
+    "normal_std": ColumnTransformer([
+        ("numeric", NUM_PIPE["normal_std"], ["weight", "height"] + SPECIALTIES),
+        ("nationality", OneHotEncoder(), ["nationality"])
+    ]),
+
+    "percentage_std": ColumnTransformer([
+        ("numeric", NUM_PIPE["normal_std"], ["weight", "height"]),
+        ("points", NUM_PIPE["percentage_std"], SPECIALTIES),
+        ("nationality", OneHotEncoder(), ["nationality"])
+    ]),
+
+    "normal_minmax": ColumnTransformer([
+        ("numeric", NUM_PIPE["normal_minmax"], ["weight", "height"] + SPECIALTIES),
+        ("nationality", OneHotEncoder(), ["nationality"])
+    ]),
+
+    "percentage_minmax": ColumnTransformer([
+        ("numeric", NUM_PIPE["normal_minmax"], ["weight", "height"]),
+        ("points", NUM_PIPE["percentage_minmax"], SPECIALTIES),
+        ("nationality", OneHotEncoder(), ["nationality"])
+    ]),
+
     "numeric_normal": ColumnTransformer([
         ("numeric", NUM_PIPE["normal"], ["weight", "height"] + SPECIALTIES)
     ]),
@@ -49,6 +89,24 @@ PREPROCESSORS = {
     "numeric_percentage": ColumnTransformer([
         ("numeric", NUM_PIPE["normal"], ["weight", "height"]),
         ("points", NUM_PIPE["percentage"], SPECIALTIES)
+    ]),
+
+    "numeric_normal_std": ColumnTransformer([
+        ("numeric", NUM_PIPE["normal_std"], ["weight", "height"] + SPECIALTIES)
+    ]),
+
+    "numeric_percentage_std": ColumnTransformer([
+        ("numeric", NUM_PIPE["normal_std"], ["weight", "height"]),
+        ("points", NUM_PIPE["percentage_std"], SPECIALTIES)
+    ]),
+
+    "numeric_normal_minmax": ColumnTransformer([
+        ("numeric", NUM_PIPE["normal_minmax"], ["weight", "height"] + SPECIALTIES)
+    ]),
+
+    "numeric_percentage_minmax": ColumnTransformer([
+        ("numeric", NUM_PIPE["normal_minmax"], ["weight", "height"]),
+        ("points", NUM_PIPE["percentage_minmax"], SPECIALTIES)
     ])
 }
 
@@ -85,15 +143,34 @@ def plot_inertia_silhouette(inertia_vect, silhouette_vect, strategy):
     plt.show()
 
 
-def model_summary(riders, pipeline):
+def model_summary(riders, strategy, k):
     """Show model summary."""
-    n = len(pipeline["kmeans"].cluster_centers_)
-    
-    print(f"K-Means with {n} clusters: Summary".center(80, "-"))
+    # Define pipeline and do clustering
+    pipeline = Pipeline([
+        ("preprocessor", PREPROCESSORS[strategy]),
+        ("kmeans", KMeans(n_clusters=k)),
+    ])
+    pipeline.fit(riders)
+
+    # Inertia & silhouette score
+    print(f"K-Means with strategy '{strategy}' and {k} clusters: Summary".center(80, "_"))
     print(f"Inertia: {pipeline['kmeans'].inertia_}")
     sil = silhouette_score(pipeline["preprocessor"].transform(riders), pipeline["kmeans"].labels_)
-    print(f"Silhouette score: {sil}")
+    print(f"Silhouette score: {sil}\n")
     
+    # Number of riders in each cluster
     labels = pipeline["kmeans"].labels_
-    for k in np.unique(labels):
-        print(f"Riders in cluster {k}: {np.count_nonzero(labels == k)}")
+    for i in np.unique(labels):
+        print(f"Riders in cluster {i}: {np.count_nonzero(labels == i)}")
+    print()
+
+    # Show 10 riders in each cluster
+    riders_labeled = riders.copy()
+    riders_labeled["cluster"] = labels
+    for cluster in range(k):
+        print(f"Cluster {cluster}".center(80, "-"))
+        riders = riders_labeled[riders_labeled["cluster"] == cluster]
+        print(riders.describe())
+        print("\nSome riders in this cluster:\n")
+        print(riders["name"].head(10).to_list())
+        print()
