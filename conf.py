@@ -7,6 +7,7 @@ dotenv.load_dotenv()
 DB_URL = os.getenv("DB_URL")
 DB_NAME = os.getenv("DB_NAME")
 BASE_URL = "https://www.procyclingstats.com"
+IMG_DIR = "img"
 
 # Scraping parameters
 RACES = {

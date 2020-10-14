@@ -5,23 +5,22 @@ def check_exists(elem):
     """Check if element already in database."""
     # Element is rider
     if isinstance(elem, str):
-        if db.riders.find_one({"name": elem}):
-            return True
-        else:
-            return False
+        return bool(db.riders.find_one({"name": elem}))
 
     # Element is stage
     query = {k: v for k, v in zip(("race", "year", "number"), elem)}
-    if db.stages.find_one(query):
-        return True
-    else:
-        return False
+    return bool(db.stages.find_one(query))
 
 
 def insert_rider(rider):
     """Insert rider in database."""
     oid = db.riders.insert_one(rider).inserted_id
     return str(oid)
+
+
+def fetch_rider(name):
+    """Fetch a single rider from database."""
+    return db.riders.find_one({"name": name})
 
 
 def fetch_riders(project=None):
