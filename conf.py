@@ -12,7 +12,7 @@ PROFILE_DIR = "../profiles"
 # Scraping parameters
 RACES = {
     "tour-de-france": [(2005, 2021), 21],
-    "giro-d-italia": [(2000, 2020), 21],
+    "giro-d-italia": [(2000, 2021), 21],
     "vuelta-a-espana": [(2008, 2020), 21],
     "tirreno-adriatico": [(2019, 2021), 8],
     "paris-nice": [(2019, 2021), 8],

@@ -6,6 +6,7 @@ from scipy.stats import mode
 from conf import BASE_URL
 from src import dbops
 
+
 @click.command()
 def dowload_prof():
     """Download stage profiles from database."""
