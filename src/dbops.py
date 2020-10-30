@@ -49,6 +49,14 @@ def assign_clusters(df):
         db.riders.update_one({"name": rider}, {"$set": {"cluster": cluster}})
 
 
+def get_clusters():
+    """Get unique clusters."""
+    riders = fetch_riders(project="cluster")
+    if not riders:
+        return None
+    return list(set([rider["cluster"] for rider in riders]))
+
+
 def insert_stage(stage):
     """Insert stage in database."""
     oid = db.stages.insert_one(stage).inserted_id

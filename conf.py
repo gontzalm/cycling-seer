@@ -4,7 +4,7 @@ import dotenv
 
 dotenv.load_dotenv()
 
-DB_URL = os.getenv("DB_URL")
+DB_URI = os.getenv("DB_URI")
 DB_NAME = os.getenv("DB_NAME")
 BASE_URL = "https://www.procyclingstats.com"
 PROFILE_DIR = "../profiles"
