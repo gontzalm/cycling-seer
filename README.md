@@ -14,7 +14,7 @@ probability of winning a certain stage.
 
 ### How it works
 
-![img](img/how_it_works.png)_
+![img](img/how_it_works.png)
 
 ## Project Development
 
@@ -81,7 +81,7 @@ condidered to belong to the stage winner's cluster. At this point, the
 `download-prof.py` tool comes handy, as it downloads and places the profiles in
 the directory (e.g. `cluster1`, `cluster2`) where they belong.
 
-Then, a Convulutional Neural Network (CNN_) is trained using
+Then, a Convulutional Neural Network (CNN) is trained using
 [*TensorFlow*](https://www.tensorflow.org/), particularly `tf.keras`'s
 sequential API, in the `notebooks/classification.ipynb` notebook. Prior to
 feeding the profiles to the neural net, a thorough preprocessing is done in
