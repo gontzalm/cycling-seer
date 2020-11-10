@@ -1,4 +1,4 @@
-#!/home/gontz/miniconda3/envs/ih/bin/python3
+#!/home/gontz/miniconda3/envs/ds/bin/python3
 
 import click
 import numpy as np
@@ -39,3 +39,7 @@ def predict():
     click.echo(f"Predicted cluster: {cluster}".center(80, "-"))
     click.echo(f"Top active riders in cluster {cluster}:".center(80, "-"))
     print(riders.head(10))
+
+
+if __name__ == "__main__":
+    predict()
