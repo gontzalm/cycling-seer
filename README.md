@@ -2,6 +2,8 @@
 
 Final project made in Ironhack Data Analytics Aug '20 cohort.
 
+![img](img/main.png)
+
 ## Objective
 
 The objective of the project is to merge machine learning with one of my

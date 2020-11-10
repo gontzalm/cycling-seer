@@ -1,7 +1,6 @@
 .env
 __pycache__/
 snippets.txt
-img/
 profiles/
 .ipynb_checkpoints/
 model/
