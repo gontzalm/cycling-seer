@@ -9,7 +9,7 @@ Final project made in Ironhack Data Analytics Aug '20 cohort.
 The objective of the project is to merge machine learning with one of my
 passions: pro cycling. This is done by applying both unsupervised and supervised
 learning techniques to riders and stages data gathered from the internet, in
-order to build a tool capable of predicting the type of rider with the most
+order to build a tool capable of predicting the type of rider with the highest
 probability of winning a certain stage.
 
 ### How it works
